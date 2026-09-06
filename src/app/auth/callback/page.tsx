@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function AuthCallbackPage() {
+// Only allow redirecting back to a same-origin, relative path. This stops
+// the redirectTo query param (which is attacker-controllable) from being
+// used to bounce a user off to an external site after login.
+function sanitizeRedirectTo(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/dashboard";
+  }
+  return value;
+}
+
+function AuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const redirectTo = sanitizeRedirectTo(searchParams.get("redirectTo"));
 
   useEffect(() => {
     const finishLogin = async () => {
@@ -15,9 +28,10 @@ export default function AuthCallbackPage() {
         setError(error.message);
         return;
       }
-      window.location.href = "/dashboard";
+      window.location.href = redirectTo;
     };
     finishLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -37,5 +51,15 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPageWithSuspense() {
+  // useSearchParams() needs a Suspense boundary in the app router, since
+  // it opts the tree below it out of static rendering.
+  return (
+    <Suspense fallback={null}>
+      <AuthCallbackPage />
+    </Suspense>
   );
 }

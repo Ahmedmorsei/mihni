@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,9 +11,21 @@ import Spinner from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
 import { loginSchema, type LoginFormValues } from "@/lib/validation/authSchemas";
 
-export default function LoginPage() {
+// Only allow redirecting back to a same-origin, relative path. This stops
+// the redirectTo query param (which is attacker-controllable) from being
+// used to bounce a user off to an external site after login.
+function sanitizeRedirectTo(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/dashboard";
+  }
+  return value;
+}
+
+function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const redirectTo = sanitizeRedirectTo(searchParams.get("redirectTo"));
 
   const {
     register,
@@ -29,22 +42,26 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword(values);
     setLoading(false);
     if (error) showToast(error.message, "error");
-    else window.location.href = "/dashboard";
+    else window.location.href = redirectTo;
   };
 
   const handleGoogleLogin = async () => {
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("redirectTo", redirectTo);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
     if (error) showToast(error.message, "error");
   };
 
   // same oauth pattern as google, just a different provider name
   const handleGithubLogin = async () => {
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("redirectTo", redirectTo);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
     if (error) showToast(error.message, "error");
   };
@@ -170,5 +187,15 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPageWithSuspense() {
+  // useSearchParams() needs a Suspense boundary in the app router, since
+  // it opts the tree below it out of static rendering.
+  return (
+    <Suspense fallback={null}>
+      <LoginPage />
+    </Suspense>
   );
 }

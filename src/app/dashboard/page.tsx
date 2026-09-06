@@ -2,13 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import Spinner from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
 
+// Subscription statuses (mirrors Stripe's Subscription.status) that count
+// as an active, paid plan. "trialing" is included so trial users also get
+// full access while their trial is running.
+const PAID_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+
+type DashboardState = "unverified" | "free" | "pro";
+
+const FEATURES = [
+  { name: "Create projects", free: "1 project", pro: "Unlimited projects" },
+  { name: "Support", free: "Community support", pro: "Priority support" },
+  { name: "Advanced analytics", free: null, pro: "Included" },
+];
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [resetLoading, setResetLoading] = useState(false);
 
@@ -21,8 +36,18 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       setUser(data.user);
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("subscription_status")
+          .eq("id", data.user.id)
+          .single();
+        setSubscriptionStatus(profile?.subscription_status ?? null);
+      }
+
       setLoading(false);
     });
   }, []);
@@ -101,10 +126,38 @@ export default function DashboardPage() {
     .toUpperCase();
 
   const isEmailVerified = Boolean(user.email_confirmed_at);
+  const isPaid = Boolean(
+    subscriptionStatus && PAID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
+  );
+
+  const dashboardState: DashboardState = !isEmailVerified
+    ? "unverified"
+    : isPaid
+    ? "pro"
+    : "free";
+
+  const badgesByState: Record<DashboardState, { label: string; className: string }> = {
+    unverified: {
+      label: "Unverified",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+    },
+    free: {
+      label: "Free plan",
+      className:
+        "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+    },
+    pro: {
+      label: "Pro",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+    },
+  };
+  const badge = badgesByState[dashboardState];
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-16 min-h-[80vh]">
-      {!isEmailVerified && (
+      {dashboardState === "unverified" && (
         <div
           role="alert"
           className="w-full max-w-sm mb-4 flex flex-col gap-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-xl px-4 py-3 text-sm"
@@ -127,6 +180,24 @@ export default function DashboardPage() {
           </button>
         </div>
       )}
+
+      {dashboardState === "free" && (
+        <div
+          role="status"
+          className="w-full max-w-sm mb-4 flex items-center justify-between gap-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl px-4 py-3 text-sm"
+        >
+          <p className="text-blue-800 dark:text-blue-300">
+            You&apos;re on the Free plan. Upgrade for unlimited projects.
+          </p>
+          <Link
+            href="/pricing"
+            className="shrink-0 font-medium text-blue-800 dark:text-blue-300 underline underline-offset-2"
+          >
+            Upgrade
+          </Link>
+        </div>
+      )}
+
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 p-8">
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-semibold mb-4">
@@ -134,6 +205,11 @@ export default function DashboardPage() {
           </div>
           <h1 className="text-xl font-bold">{username}</h1>
           <p className="text-sm text-gray-500">{user.email}</p>
+          <span
+            className={`mt-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+          >
+            {badge.label}
+          </span>
         </div>
 
         <div className="flex flex-col gap-3 mb-6">
@@ -145,6 +221,56 @@ export default function DashboardPage() {
             <span className="text-gray-500">Email</span>
             <span className="font-medium">{user.email}</span>
           </div>
+        </div>
+
+        <div className="relative mb-6">
+          <ul
+            className={`flex flex-col gap-2 text-sm rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 ${
+              dashboardState === "unverified" ? "blur-sm select-none pointer-events-none" : ""
+            }`}
+            aria-hidden={dashboardState === "unverified"}
+          >
+            {FEATURES.map((feature) => {
+              const unlocked = dashboardState === "pro" || feature.free;
+              return (
+                <li key={feature.name} className="flex items-center justify-between gap-2">
+                  <span className={unlocked ? "text-gray-700 dark:text-gray-300" : "text-gray-400 dark:text-gray-600"}>
+                    {feature.name}
+                  </span>
+                  <span
+                    className={`text-xs font-medium ${
+                      unlocked
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-gray-400 dark:text-gray-600"
+                    }`}
+                  >
+                    {dashboardState === "pro"
+                      ? feature.pro
+                      : feature.free ?? "Pro only"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+
+          {dashboardState === "unverified" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-4">
+              <svg
+                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <rect x="4" y="10" width="16" height="10" rx="2" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Verify your email to unlock features
+              </p>
+            </div>
+          )}
         </div>
 
         <button
