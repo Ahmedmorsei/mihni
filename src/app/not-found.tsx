@@ -3,33 +3,16 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center text-center px-6 py-24 min-h-[80vh]">
-      <svg
-        width="120"
-        height="120"
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-        focusable="false"
-        className="mb-6 text-primary"
-      >
-        <circle cx="100" cy="100" r="90" className="fill-gray-100 dark:fill-gray-900" />
-        <path
-          d="M65 75c0-19 15-34 34-34s35 15 35 34"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="6"
-          strokeLinecap="round"
-        />
-        <circle cx="78" cy="95" r="6" fill="currentColor" />
-        <circle cx="122" cy="95" r="6" fill="currentColor" />
-        <path
-          d="M75 130c8-8 15-11 25-11s17 3 25 11"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="6"
-          strokeLinecap="round"
-        />
-      </svg>
+      <div className="not-found-scene mb-8" aria-hidden="true">
+        <span className="not-found-orbit not-found-orbit--one" />
+        <span className="not-found-orbit not-found-orbit--two" />
+        <span className="not-found-fragment not-found-fragment--top" />
+        <span className="not-found-fragment not-found-fragment--side" />
+        <div className="not-found-beacon">
+          <span className="not-found-beacon__label">404</span>
+          <span className="not-found-beacon__dot" />
+        </div>
+      </div>
 
       <p className="text-sm font-semibold tracking-widest text-primary mb-2">
         ERROR 404
