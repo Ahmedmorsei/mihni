@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import Spinner from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
+import DashboardNav, { type DashboardTab } from "@/components/DashboardNav";
 
 // Subscription statuses (mirrors Stripe's Subscription.status) that count
 // as an active, paid plan. "trialing" is included so trial users also get
@@ -21,11 +22,26 @@ const FEATURES = [
   { name: "Advanced analytics", free: null, pro: "Included" },
 ];
 
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "—";
+  return new Date(value).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function formatProvider(value: string | undefined): string {
+  if (!value) return "Email";
+  if (value === "email") return "Email";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [resetLoading, setResetLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
 
   const [verificationLoading, setVerificationLoading] = useState(false);
 
@@ -155,6 +171,10 @@ export default function DashboardPage() {
   };
   const badge = badgesByState[dashboardState];
 
+  const accountCreated = formatDateTime(user.created_at);
+  const lastSignIn = formatDateTime(user.last_sign_in_at);
+  const authProvider = formatProvider(user.app_metadata?.provider as string | undefined);
+
   return (
     <div className="flex flex-col items-center justify-center px-4 py-16 min-h-[80vh]">
       {dashboardState === "unverified" && (
@@ -181,22 +201,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {dashboardState === "free" && (
-        <div
-          role="status"
-          className="w-full max-w-sm mb-4 flex items-center justify-between gap-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl px-4 py-3 text-sm"
-        >
-          <p className="text-blue-800 dark:text-blue-300">
-            You&apos;re on the Free plan. Upgrade for unlimited projects.
-          </p>
-          <Link
-            href="/pricing"
-            className="shrink-0 font-medium text-blue-800 dark:text-blue-300 underline underline-offset-2"
-          >
-            Upgrade
-          </Link>
-        </div>
-      )}
+      <DashboardNav activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 p-8">
         <div className="flex flex-col items-center text-center mb-6">
@@ -212,124 +217,178 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="flex flex-col gap-3 mb-6">
-          <div className="flex justify-between text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
-            <span className="text-gray-500">Username</span>
-            <span className="font-medium">{username}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Email</span>
-            <span className="font-medium">{user.email}</span>
-          </div>
-        </div>
-
-        <div className="relative mb-6">
-          <ul
-            className={`flex flex-col gap-2 text-sm rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 ${
-              dashboardState === "unverified" ? "blur-sm select-none pointer-events-none" : ""
-            }`}
-            aria-hidden={dashboardState === "unverified"}
-          >
-            {FEATURES.map((feature) => {
-              const unlocked = dashboardState === "pro" || feature.free;
-              return (
-                <li key={feature.name} className="flex items-center justify-between gap-2">
-                  <span className={unlocked ? "text-gray-700 dark:text-gray-300" : "text-gray-400 dark:text-gray-600"}>
-                    {feature.name}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${
-                      unlocked
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-gray-400 dark:text-gray-600"
-                    }`}
-                  >
-                    {dashboardState === "pro"
-                      ? feature.pro
-                      : feature.free ?? "Pro only"}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-
-          {dashboardState === "unverified" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-4">
-              <svg
-                className="h-5 w-5 text-gray-500 dark:text-gray-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <rect x="4" y="10" width="16" height="10" rx="2" />
-                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-              </svg>
-              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                Verify your email to unlock features
-              </p>
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={handleResetPassword}
-          disabled={resetLoading}
-          className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-3 py-2.5 text-sm font-medium transition shadow-sm shadow-primary/30"
-        >
-          {resetLoading ? (
-            <>
-              <Spinner /> Sending...
-            </>
-          ) : (
-            "Reset Password"
-          )}
-        </button>
-
-        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-          {!confirmingDelete ? (
-            <button
-              onClick={() => setConfirmingDelete(true)}
-              className="w-full text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition"
-            >
-              Delete Account
-            </button>
-          ) : (
-            <div
-              role="alertdialog"
-              aria-label="Confirm account deletion"
-              className="flex flex-col gap-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl px-4 py-3"
-            >
-              <p className="text-sm text-red-800 dark:text-red-300">
-                This will permanently delete your account and all of your
-                data. This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={deleteLoading}
-                  className="flex items-center justify-center gap-2 flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-3 py-2 text-sm font-medium transition"
-                >
-                  {deleteLoading ? (
-                    <>
-                      <Spinner /> Deleting...
-                    </>
-                  ) : (
-                    "Yes, delete my account"
-                  )}
-                </button>
-                <button
-                  onClick={() => setConfirmingDelete(false)}
-                  disabled={deleteLoading}
-                  className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed transition"
-                >
-                  Cancel
-                </button>
+        {activeTab === "overview" && (
+          <>
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="flex justify-between text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
+                <span className="text-gray-500">Username</span>
+                <span className="font-medium">{username}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
+                <span className="text-gray-500">Email</span>
+                <span className="font-medium">{user.email}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
+                <span className="text-gray-500">Account created</span>
+                <span className="font-medium">{accountCreated}</span>
+              </div>
+              <div className="flex justify-between text-sm border-b border-gray-100 dark:border-gray-800 pb-2">
+                <span className="text-gray-500">Last sign-in</span>
+                <span className="font-medium">{lastSignIn}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Signed in with</span>
+                <span className="font-medium">{authProvider}</span>
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="relative mb-2">
+              <ul
+                className={`flex flex-col gap-2 text-sm rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 ${
+                  dashboardState === "unverified" ? "blur-sm select-none pointer-events-none" : ""
+                }`}
+                aria-hidden={dashboardState === "unverified"}
+              >
+                {FEATURES.map((feature) => {
+                  const unlocked = dashboardState === "pro" || feature.free;
+                  return (
+                    <li key={feature.name} className="flex items-center justify-between gap-2">
+                      <span className={unlocked ? "text-gray-700 dark:text-gray-300" : "text-gray-400 dark:text-gray-600"}>
+                        {feature.name}
+                      </span>
+                      <span
+                        className={`text-xs font-medium ${
+                          unlocked
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-gray-400 dark:text-gray-600"
+                        }`}
+                      >
+                        {dashboardState === "pro"
+                          ? feature.pro
+                          : feature.free ?? "Pro only"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {dashboardState === "unverified" && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-4">
+                  <svg
+                    className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <rect x="4" y="10" width="16" height="10" rx="2" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    Verify your email to unlock features
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === "billing" && (
+          <div className="flex flex-col gap-3 mb-2">
+            <div
+              className={`rounded-xl border px-4 py-3 ${
+                dashboardState === "pro"
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900"
+                  : "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-800"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium">Current plan</span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+                >
+                  {badge.label}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {dashboardState === "pro"
+                  ? "You have full access to all Pro features."
+                  : "You're on the Free plan. Upgrade for unlimited projects and priority support."}
+              </p>
+              {dashboardState !== "pro" && (
+                <Link
+                  href="/pricing"
+                  className="mt-3 flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 text-white rounded-lg px-3 py-2.5 text-sm font-medium transition shadow-sm shadow-primary/30"
+                >
+                  Upgrade
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="flex flex-col gap-6">
+            <button
+              onClick={handleResetPassword}
+              disabled={resetLoading}
+              className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-3 py-2.5 text-sm font-medium transition shadow-sm shadow-primary/30"
+            >
+              {resetLoading ? (
+                <>
+                  <Spinner /> Sending...
+                </>
+              ) : (
+                "Reset Password"
+              )}
+            </button>
+
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
+              {!confirmingDelete ? (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="w-full text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition"
+                >
+                  Delete Account
+                </button>
+              ) : (
+                <div
+                  role="alertdialog"
+                  aria-label="Confirm account deletion"
+                  className="flex flex-col gap-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl px-4 py-3"
+                >
+                  <p className="text-sm text-red-800 dark:text-red-300">
+                    This will permanently delete your account and all of your
+                    data. This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleteLoading}
+                      className="flex items-center justify-center gap-2 flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-3 py-2 text-sm font-medium transition"
+                    >
+                      {deleteLoading ? (
+                        <>
+                          <Spinner /> Deleting...
+                        </>
+                      ) : (
+                        "Yes, delete my account"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setConfirmingDelete(false)}
+                      disabled={deleteLoading}
+                      className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
