@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/lib/supabaseClient";
@@ -23,7 +23,9 @@ function sanitizeRedirectTo(value: string | null): string {
 
 function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const { showToast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = sanitizeRedirectTo(searchParams.get("redirectTo"));
 
@@ -40,9 +42,15 @@ function LoginPage() {
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(values);
-    setLoading(false);
-    if (error) showToast(error.message, "error");
-    else window.location.href = redirectTo;
+    if (error) {
+      setLoading(false);
+      showToast(error.message, "error");
+      return;
+    }
+    // Use the router instead of a hard navigation so the transition to
+    // the dashboard is a fast client-side swap, not a full page reload.
+    setRedirecting(true);
+    router.push(redirectTo);
   };
 
   const handleGoogleLogin = async () => {
@@ -65,6 +73,19 @@ function LoginPage() {
     });
     if (error) showToast(error.message, "error");
   };
+
+  if (redirecting) {
+    return (
+      <div className="flex items-center justify-center px-4 py-16 min-h-[80vh]">
+        <div className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 p-8 flex flex-col items-center gap-3 text-center">
+          <Spinner className="h-6 w-6 text-primary" />
+          <p role="status" className="text-sm text-gray-500">
+            Logging you in...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center px-4 py-16 min-h-[80vh]">
