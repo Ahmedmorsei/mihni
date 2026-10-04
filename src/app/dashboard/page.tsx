@@ -13,6 +13,7 @@ import DashboardNav, { type DashboardTab } from "@/components/DashboardNav";
 // as an active, paid plan. "trialing" is included so trial users also get
 // full access while their trial is running.
 const PAID_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+const NEW_USER_WINDOW_MS = 5 * 60 * 1000;
 
 type DashboardState = "unverified" | "free" | "pro";
 
@@ -34,6 +35,16 @@ function formatProvider(value: string | undefined): string {
   if (!value) return "Email";
   if (value === "email") return "Email";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function isRecentlyCreated(createdAt: string | undefined): boolean {
+  if (!createdAt) return false;
+
+  const createdAtMs = new Date(createdAt).getTime();
+  if (Number.isNaN(createdAtMs)) return false;
+
+  const accountAgeMs = Date.now() - createdAtMs;
+  return accountAgeMs >= 0 && accountAgeMs <= NEW_USER_WINDOW_MS;
 }
 
 export default function DashboardPage() {
@@ -142,6 +153,7 @@ export default function DashboardPage() {
     .toUpperCase();
 
   const isEmailVerified = Boolean(user.email_confirmed_at);
+  const isNewUser = isRecentlyCreated(user.created_at);
   const isPaid = Boolean(
     subscriptionStatus && PAID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
   );
@@ -177,6 +189,50 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-16 min-h-[80vh]">
+      {isNewUser && (
+        <section
+          aria-labelledby="welcome-heading"
+          className="w-full max-w-sm mb-6 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 px-5 py-5"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            Welcome aboard
+          </p>
+          <h1 id="welcome-heading" className="mt-1 text-xl font-bold">
+            Let&apos;s get you set up
+          </h1>
+          <div className="mt-4 flex flex-col gap-2">
+            <div className="flex items-center gap-3 rounded-xl bg-white/80 dark:bg-gray-900/60 px-3 py-2.5 text-sm">
+              <span aria-hidden="true" className="text-lg">{isEmailVerified ? "✓" : "○"}</span>
+              <span className="font-medium">Verify email</span>
+              {!isEmailVerified && (
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={verificationLoading}
+                  className="ml-auto text-xs font-medium text-primary hover:underline disabled:opacity-60"
+                >
+                  {verificationLoading ? "Sending..." : "Resend"}
+                </button>
+              )}
+            </div>
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 rounded-xl bg-white/80 dark:bg-gray-900/60 px-3 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-900"
+            >
+              <span aria-hidden="true" className="text-lg">○</span>
+              Complete your profile
+            </Link>
+            <Link
+              href="/pricing"
+              className="flex items-center gap-3 rounded-xl bg-white/80 dark:bg-gray-900/60 px-3 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-900"
+            >
+              <span aria-hidden="true" className="text-lg">○</span>
+              Explore pricing
+            </Link>
+          </div>
+        </section>
+      )}
+
       {dashboardState === "unverified" && (
         <div
           role="alert"
