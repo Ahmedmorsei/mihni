@@ -28,22 +28,22 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex items-center justify-center px-4 py-16 min-h-[80vh]">
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 p-8">
-        <h1 className="text-2xl font-bold mb-1">Forgot password?</h1>
+        <h1 className="text-2xl font-bold mb-1">نسيت كلمة المرور؟</h1>
         <p className="text-sm text-gray-500 mb-6">
-          Enter your email and we&apos;ll send you a reset link.
+          أدخل بريدك الإلكتروني وسنرسل إليك رابط إعادة التعيين.
         </p>
         {sent ? (
           <p
             role="status"
             className="text-green-600 text-sm bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-lg px-3 py-3"
           >
-            Reset link sent. Check your inbox.
+            أُرسل رابط إعادة التعيين. تحقق من بريدك الوارد.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Email
+                البريد الإلكتروني
               </label>
               <input
                 type="email"
@@ -70,18 +70,18 @@ export default function ForgotPasswordPage() {
             >
               {loading ? (
                 <>
-                  <Spinner /> Sending...
+                <Spinner /> جارٍ الإرسال...
                 </>
               ) : (
-                "Send reset link"
+                "إرسال رابط إعادة التعيين"
               )}
             </button>
           </form>
         )}
         <p className="text-sm text-gray-500 mt-6 text-center">
-          Remembered your password?{" "}
+          تذكرت كلمة المرور؟{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Back to login
+            العودة إلى تسجيل الدخول
           </Link>
         </p>
       </div>

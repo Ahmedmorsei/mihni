@@ -13,38 +13,38 @@ beforeEach(() => {
 describe("ThemeToggle", () => {
   it("renders in light mode by default", () => {
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
-    expect(button).toHaveTextContent("Dark");
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
+    expect(button).toHaveTextContent("داكن");
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
   it("switches to dark mode on click", async () => {
     const user = userEvent.setup();
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
 
     await user.click(button);
 
-    expect(button).toHaveTextContent("Light");
+    expect(button).toHaveTextContent("فاتح");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
   it("switches back to light mode on second click", async () => {
     const user = userEvent.setup();
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
 
     await user.click(button);
     await user.click(button);
 
-    expect(button).toHaveTextContent("Dark");
+    expect(button).toHaveTextContent("داكن");
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
   it("persists the chosen theme to localStorage when toggled", async () => {
     const user = userEvent.setup();
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
 
     expect(window.localStorage.getItem("theme")).toBe("light");
 
@@ -59,9 +59,9 @@ describe("ThemeToggle", () => {
     window.localStorage.setItem("theme", "dark");
 
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
 
-    expect(button).toHaveTextContent("Light");
+    expect(button).toHaveTextContent("فاتح");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
@@ -69,9 +69,9 @@ describe("ThemeToggle", () => {
     window.localStorage.setItem("theme", "light");
 
     render(<ThemeToggle />);
-    const button = screen.getByRole("button", { name: /toggle dark mode/i });
+    const button = screen.getByRole("button", { name: /تغيير المظهر الداكن/i });
 
-    expect(button).toHaveTextContent("Dark");
+    expect(button).toHaveTextContent("داكن");
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 });

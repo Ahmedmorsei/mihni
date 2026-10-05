@@ -2,13 +2,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Server-only: never import this file from a "use client" component or
 // expose SUPABASE_SERVICE_ROLE_KEY to the browser. This client bypasses
-// Row Level Security, so it's used only for trusted server code such as
-// the Stripe webhook handler.
+// Row Level Security, so it's used only for trusted server routes such as
+// account deletion.
 //
-// Created lazily (on first use) for the same reason as the Stripe client
-// in ./stripe.ts — Next.js evaluates route modules during the build's
-// "collect page data" step, and a missing service role key would otherwise
-// crash the build itself instead of failing only when the route runs.
+// Created lazily (on first use) so a missing service role key does not
+// crash build-time route analysis.
 let adminClient: SupabaseClient | null = null;
 
 export function getSupabaseAdmin(): SupabaseClient {

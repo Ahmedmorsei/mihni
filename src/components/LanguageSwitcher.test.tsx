@@ -19,11 +19,12 @@ function renderWithProvider() {
 }
 
 describe("LanguageSwitcher", () => {
-  it("defaults to English", () => {
+  it("defaults to Arabic", () => {
     renderWithProvider();
     const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("en");
-    expect(document.documentElement.lang).toBe("en");
+    expect(select.value).toBe("ar");
+    expect(document.documentElement.lang).toBe("ar");
+    expect(document.documentElement.dir).toBe("rtl");
   });
 
   it("switches the active language and translated text", async () => {
@@ -31,16 +32,12 @@ describe("LanguageSwitcher", () => {
     renderWithProvider();
 
     const select = screen.getByRole("combobox") as HTMLSelectElement;
-    await user.selectOptions(select, "ur");
+    await user.selectOptions(select, "en");
 
-    expect(select.value).toBe("ur");
-    expect(document.documentElement.lang).toBe("ur");
-    // `dir` intentionally stays "ltr" so switching languages never shifts
-    // the layout - only the text content changes.
+    expect(select.value).toBe("en");
+    expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
-    // Footer swaps from the English copy to the Urdu translation.
-    expect(screen.queryByText(/Contributions welcome/i)).toBeNull();
-    expect(screen.getByText(/خیرمقدم/)).not.toBeNull();
+    expect(screen.getByText(/Work\. Verified\. Trusted\./)).not.toBeNull();
   });
 
   it("persists the selected language to localStorage", async () => {
@@ -48,23 +45,23 @@ describe("LanguageSwitcher", () => {
     renderWithProvider();
 
     const select = screen.getByRole("combobox") as HTMLSelectElement;
-    await user.selectOptions(select, "ur");
+    await user.selectOptions(select, "en");
 
-    expect(window.localStorage.getItem("locale")).toBe("ur");
+    expect(window.localStorage.getItem("locale")).toBe("en");
   });
 
   it("restores a previously selected language on mount", () => {
-    window.localStorage.setItem("locale", "ur");
+    window.localStorage.setItem("locale", "en");
     renderWithProvider();
 
     const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("ur");
+    expect(select.value).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
   });
 
-  it("falls back to English when used without a provider", () => {
+  it("falls back to Arabic when used without a provider", () => {
     render(<LanguageSwitcher />);
     const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("en");
+    expect(select.value).toBe("ar");
   });
 });

@@ -4,10 +4,9 @@ import SiteFooter from "@/components/SiteFooter";
 import Providers from "@/components/Providers";
 import type { Metadata } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const siteName = "Next.js Supabase Starter";
-const siteDescription =
-  "Production-ready Next.js + TypeScript + Tailwind + Supabase SaaS starter kit — beginner friendly, senior approved.";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mihni.work";
+const siteName = "مِهني | Mihni";
+const siteDescription = "مِهني منصة للعمل الحقيقي تجمع أصحاب المهارات والشركات والعملاء بثقة.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -16,14 +15,8 @@ export const metadata: Metadata = {
     template: `%s | ${siteName}`,
   },
   description: siteDescription,
-  keywords: [
-    "Next.js starter",
-    "Supabase auth",
-    "SaaS boilerplate",
-    "TypeScript",
-    "Tailwind CSS",
-  ],
-  authors: [{ name: "MuhammadNiazAli" }],
+  keywords: ["مِهني", "عمل", "محترفون", "فرص عمل"],
+  authors: [{ name: "Mihni" }],
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -35,20 +28,11 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
     siteName,
-    images: [
-      {
-        url: "/assets/home.png",
-        width: 1200,
-        height: 630,
-        alt: siteName,
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteName,
     description: siteDescription,
-    images: ["/assets/home.png"],
   },
 };
 
@@ -74,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

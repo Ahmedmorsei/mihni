@@ -46,7 +46,7 @@ function AuthCallbackPage() {
           </p>
         ) : (
           <p role="status" className="text-sm text-gray-500">
-            Signing you in...
+            جارٍ تسجيل الدخول...
           </p>
         )}
       </div>

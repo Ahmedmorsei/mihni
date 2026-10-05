@@ -1,8 +1,8 @@
 {
-  "name": "fullstack-starter",
+  "name": "mihni",
   "version": "1.0.0",
   "private": true,
-  "description": "Production-ready Next.js + TypeScript + Tailwind + Supabase SaaS starter kit — beginner friendly, senior approved.",
+  "description": "Mihni.work — professional work marketplace foundation",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,9 +11,7 @@
     "format": "prettier --write .",
     "test": "vitest run --config vitest.unit.config.ts",
     "test:watch": "vitest --config vitest.unit.config.ts",
-    "test:e2e": "playwright test",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -23,7 +21,6 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.53.0",
-    "stripe": "^22.5.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -37,19 +34,10 @@
     "prettier": "^3.3.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.0",
-    "storybook": "^10.5.8",
-    "@storybook/nextjs-vite": "^10.5.8",
-    "@chromatic-com/storybook": "latest",
-    "@storybook/addon-vitest": "^10.5.8",
-    "@storybook/addon-a11y": "^10.5.8",
-    "@storybook/addon-docs": "^10.5.8",
-    "@storybook/addon-mcp": "latest",
     "vite": "latest",
-    "eslint-plugin-storybook": "^10.5.8",
     "vitest": "latest",
     "playwright": "latest",
     "@playwright/test": "latest",
-    "@vitest/browser-playwright": "latest",
     "@vitest/coverage-v8": "latest",
     "jsdom": "latest",
     "@vitejs/plugin-react": "latest",

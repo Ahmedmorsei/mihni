@@ -1,9 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Mirrors the existing vitest.config.ts pattern (project-based config, one
-// browser project via the Playwright chromium provider) but for real
-// end-to-end runs against a running Next.js server instead of component/
-// story tests.
+// Runs browser end-to-end tests against the local Next.js server.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
 
 export default defineConfig({

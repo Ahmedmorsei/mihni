@@ -10,12 +10,12 @@ import {
 } from "react";
 
 import en from "@/messages/en.json";
-import ur from "@/messages/ur.json";
+import ar from "@/messages/ar.json";
 import { defaultLocale, locales, type Locale } from "./config";
 
 type Messages = typeof en;
 
-const dictionaries: Record<Locale, Messages> = { en, ur };
+const dictionaries: Record<Locale, Messages> = { en, ar };
 
 const STORAGE_KEY = "locale";
 
@@ -45,8 +45,8 @@ function createTranslator(locale: Locale): TranslateFn {
 }
 
 // Sensible default so components can call useLanguage() even when they are
-// rendered outside a <LanguageProvider> (e.g. in isolated unit tests or
-// Storybook stories) - they simply fall back to the default locale.
+// rendered outside a <LanguageProvider> (e.g. in isolated unit tests) -
+// they simply fall back to the default locale.
 const defaultContextValue: LanguageContextValue = {
   locale: defaultLocale,
   setLocale: () => {},
@@ -55,38 +55,33 @@ const defaultContextValue: LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue>(defaultContextValue);
 
-function getInitialLocale(): Locale {
-  if (typeof window === "undefined") {
-    return defaultLocale;
-  }
-
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored && (locales as readonly string[]).includes(stored)) {
-      return stored as Locale;
-    }
-  } catch {
-    // localStorage can be unavailable (privacy mode, SSR, etc.) - ignore.
-  }
-
-  return defaultLocale;
-}
-
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(getInitialLocale);
+  const [locale, setLocale] = useState<Locale>(defaultLocale);
+  const [localeReady, setLocaleReady] = useState(false);
 
   useEffect(() => {
-    // Only the `lang` attribute changes with the locale. `dir` is kept fixed
-    // at "ltr" on purpose so switching languages never reflows/shifts the
-    // layout (navbar, cards, etc. must stay exactly where they are).
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored && (locales as readonly string[]).includes(stored)) {
+        setLocale(stored as Locale);
+      }
+    } catch {
+      // localStorage can be unavailable (privacy mode, SSR, etc.) - ignore.
+    }
+    setLocaleReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!localeReady) return;
     document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
 
     try {
       window.localStorage.setItem(STORAGE_KEY, locale);
     } catch {
       // Ignore write errors (e.g. storage disabled/full).
     }
-  }, [locale]);
+  }, [locale, localeReady]);
 
   const value = useMemo<LanguageContextValue>(
     () => ({ locale, setLocale, t: createTranslator(locale) }),

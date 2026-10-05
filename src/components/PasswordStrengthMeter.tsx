@@ -34,7 +34,7 @@ export default function PasswordStrengthMeter({ password }: { password: string }
         ))}
       </div>
       <p className={`text-xs mt-1.5 font-medium ${LABEL_COLORS[label]}`}>
-        Password strength: {label}
+        قوة كلمة المرور: {label === "Weak" ? "ضعيفة" : label === "Medium" ? "متوسطة" : "قوية"}
       </p>
     </div>
   );

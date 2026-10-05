@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mihni.work";
 
 // Only public, indexable routes belong here — auth pages (login/signup/etc.)
 // and the user-only dashboard/profile pages are intentionally left out.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/pricing"];
+  const routes = ["", "/discover", "/opportunities"];
 
   return routes.map((route) => ({
     url: `${siteUrl}${route}`,

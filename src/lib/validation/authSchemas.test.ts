@@ -18,7 +18,7 @@ describe("authSchemas validation", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("Email is required");
+        expect(result.error.issues[0].message).toBe("البريد الإلكتروني مطلوب");
       }
     });
 
@@ -29,7 +29,7 @@ describe("authSchemas validation", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("Enter a valid email address");
+        expect(result.error.issues[0].message).toBe("أدخل بريداً إلكترونياً صحيحاً");
       }
     });
 
@@ -40,7 +40,7 @@ describe("authSchemas validation", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("Password is required");
+        expect(result.error.issues[0].message).toBe("كلمة المرور مطلوبة");
       }
     });
   });
@@ -64,7 +64,7 @@ describe("authSchemas validation", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe(
-          "Username must be at least 3 characters"
+          "يجب أن يتكون اسم المستخدم من ٣ أحرف على الأقل"
         );
       }
     });
@@ -77,7 +77,7 @@ describe("authSchemas validation", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe("Enter a valid email address");
+        expect(result.error.issues[0].message).toBe("أدخل بريداً إلكترونياً صحيحاً");
       }
     });
 
@@ -91,7 +91,7 @@ describe("authSchemas validation", () => {
       if (!result.success) {
         expect(
           result.error.issues.some(
-            (i) => i.message === "Password must be at least 8 characters"
+            (i) => i.message === "يجب أن تتكون كلمة المرور من ٨ أحرف على الأقل"
           )
         ).toBe(true);
       }
@@ -107,7 +107,7 @@ describe("authSchemas validation", () => {
       if (!result.success) {
         expect(
           result.error.issues.some(
-            (i) => i.message === "Password must include a lowercase letter"
+            (i) => i.message === "يجب أن تتضمن كلمة المرور حرفاً إنجليزياً صغيراً"
           )
         ).toBe(true);
       }
@@ -123,7 +123,7 @@ describe("authSchemas validation", () => {
       if (!result.success) {
         expect(
           result.error.issues.some(
-            (i) => i.message === "Password must include an uppercase letter"
+            (i) => i.message === "يجب أن تتضمن كلمة المرور حرفاً إنجليزياً كبيراً"
           )
         ).toBe(true);
       }
@@ -139,7 +139,7 @@ describe("authSchemas validation", () => {
       if (!result.success) {
         expect(
           result.error.issues.some(
-            (i) => i.message === "Password must include a number"
+            (i) => i.message === "يجب أن تتضمن كلمة المرور رقماً"
           )
         ).toBe(true);
       }

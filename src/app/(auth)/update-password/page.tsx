@@ -24,27 +24,27 @@ export default function UpdatePasswordPage() {
   return (
     <div className="flex items-center justify-center px-4 py-16 min-h-[80vh]">
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 p-8">
-        <h1 className="text-2xl font-bold mb-1">Set a new password</h1>
+        <h1 className="text-2xl font-bold mb-1">تعيين كلمة مرور جديدة</h1>
         <p className="text-sm text-gray-500 mb-6">
-          Enter a new password for your account.
+          أدخل كلمة مرور جديدة لحسابك.
         </p>
         {success ? (
           <p
             role="status"
             className="text-green-600 text-sm bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-lg px-3 py-3"
           >
-            Password updated. You can now log in with your new password.
+            تم تحديث كلمة المرور. يمكنك الآن تسجيل الدخول.
           </p>
         ) : (
           <form onSubmit={handleUpdate} className="flex flex-col gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                New Password
+                كلمة المرور الجديدة
               </label>
               <PasswordInput
                 value={password}
                 onChange={setPassword}
-                placeholder="Enter your new password"
+                placeholder="أدخل كلمة المرور الجديدة"
                 autoComplete="new-password"
               />
             </div>
@@ -63,10 +63,10 @@ export default function UpdatePasswordPage() {
             >
               {loading ? (
                 <>
-                  <Spinner /> Updating...
+                <Spinner /> جارٍ التحديث...
                 </>
               ) : (
-                "Update Password"
+                "تحديث كلمة المرور"
               )}
             </button>
           </form>

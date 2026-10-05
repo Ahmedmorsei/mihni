@@ -3,6 +3,10 @@ node_modules
 out
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local.txt
 .DS_Store
 *.log
 
@@ -12,3 +16,4 @@ storybook-static
 /playwright-report
 /test-results
 /playwright/.cache
+/tsconfig.tsbuildinfo

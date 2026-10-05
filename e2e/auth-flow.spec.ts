@@ -9,16 +9,16 @@ test.describe("Auth flow", () => {
 
     await page.goto("/signup");
 
-    await page.getByPlaceholder("Choose a username").fill(user.username);
+    await page.getByPlaceholder("اختر اسم مستخدم").fill(user.username);
     await page.getByPlaceholder("you@example.com").fill(user.email);
-    await page.getByPlaceholder("Create a strong password").fill(user.password);
+    await page.getByPlaceholder("أنشئ كلمة مرور قوية").fill(user.password);
 
-    await page.getByRole("button", { name: "Sign up" }).click();
+    await page.getByRole("button", { name: "إنشاء حساب" }).click();
 
     // Signup always requires email confirmation before a session exists,
     // so the reachable end state here is the "check your email" screen.
     await expect(page.getByRole("status")).toContainText(
-      "Check your email to confirm your account."
+      "تحقق من بريدك الإلكتروني لتأكيد حسابك."
     );
   });
 
@@ -34,8 +34,8 @@ test.describe("Auth flow", () => {
     await page.goto("/login");
 
     await page.getByPlaceholder("you@example.com").fill(user!.email);
-    await page.getByPlaceholder("Enter your password").fill(user!.password);
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.getByPlaceholder("أدخل كلمة المرور").fill(user!.password);
+    await page.getByRole("button", { name: "تسجيل الدخول" }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
@@ -43,10 +43,10 @@ test.describe("Auth flow", () => {
     ).toBeVisible();
 
     // Logout is only rendered in the navbar once a session exists.
-    await page.getByRole("button", { name: "Logout" }).click();
+    await page.getByRole("button", { name: "تسجيل الخروج" }).click();
 
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "تسجيل الدخول" })).toBeVisible();
   });
 
   test("visiting the dashboard while logged out redirects to login", async ({

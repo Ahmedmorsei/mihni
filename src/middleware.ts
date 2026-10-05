@@ -14,16 +14,17 @@ export async function middleware(request: NextRequest) {
   });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If Supabase env vars aren't configured yet (e.g. first run of the
-  // starter kit before .env is filled in), don't block the app - just let
-  // the request through unchanged.
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return response;
+  // Protected pages must fail closed: configuration errors should never
+  // turn a protected route into a public one.
+  if (!supabaseUrl || !supabaseKey) {
+    return new NextResponse("Authentication is not configured.", { status: 503 });
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -40,11 +41,11 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims verifies the JWT signature; cookie contents alone are not
+  // sufficient to authorize access to protected pages.
+  const { data, error } = await supabase.auth.getClaims();
 
-  if (!user) {
+  if (error || !data?.claims) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
@@ -54,5 +55,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/profile/:path*"],
 };
